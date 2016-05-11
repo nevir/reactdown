@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+'use strict';
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+var _ = require('../');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var filename = process.argv[2];
+
+if (!filename) {
+  console.error('usage: parse <filename>');
+  process.exit(1);
+}
+
+var src = _fs2.default.readFileSync(filename, 'utf8');
+var node = (0, _.parse)(src);
+
+console.log(JSON.stringify(node, null, 2));
+
+// vim: set ft=javascript:

@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+'use strict';
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _commander = require('commander');
+
+var _commander2 = _interopRequireDefault(_commander);
+
+var _ = require('../');
+
+var _ComponentRef = require('../ComponentRef');
+
+var _resolve = require('resolve');
+
+var _package = require('../../package.json');
+
+var _package2 = _interopRequireDefault(_package);
+
+var _Config = require('../Config');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function error(message) {
+  console.error('error:', message);
+  process.exit(1);
+}
+
+function collectDirective(value, config) {
+  var ref = (0, _ComponentRef.parseNamed)(value);
+  if (ref === null) {
+    error('directive should be in form of: <id>=<source>(:<name>)?');
+  }
+  config[ref.id] = {
+    render: ref.ref
+  };
+  return config;
+}
+
+function collectRole(value, config) {
+  var ref = (0, _ComponentRef.parseNamed)(value);
+  if (ref === null) {
+    error('role should be in form of: <id>=<source>(:<name>)?');
+  }
+  config[ref.id] = ref.ref;
+  return config;
+}
+
+_commander2.default.version(_package2.default.version).arguments('<file>').option('-d, --directive [component-ref]', 'Register component for a directive', collectDirective, {}).option('-r, --role [component-ref]', 'Register component for a role', collectRole, {}).option('-e, --components [module-ref]', 'Module with HTML components', String, null).parse(process.argv);
+
+var filename = _path2.default.resolve(_commander2.default.args[0]);
+var dirname = _path2.default.dirname(filename);
+
+var src = _fs2.default.readFileSync(filename, 'utf8');
+
+var config = (0, _Config.findConfig)(dirname).config;
+config = (0, _Config.mergeConfig)(config, {
+  directives: _commander2.default.directive,
+  roles: _commander2.default.role,
+  components: _commander2.default.components === null ? _commander2.default.components : (0, _resolve.sync)(_commander2.default.components)
+});
+
+console.log((0, _.renderToString)(src, config).code);
+
+// vim: set ft=javascript:
